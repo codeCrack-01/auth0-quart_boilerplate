@@ -4,7 +4,7 @@ from urllib.parse import quote_plus, urlencode
 from os import environ as env
 from dotenv import load_dotenv, find_dotenv
 
-from flask import Flask, url_for, session, redirect, render_template
+from quart import Quart, url_for, session, redirect, render_template
 from authlib.integrations.flask_client import OAuth
 
 ENV_FILE = find_dotenv()
@@ -12,9 +12,10 @@ if ENV_FILE:
     load_dotenv(ENV_FILE)
 
 # Main Application Call
-app = Flask(__name__, template_folder='templates')
+app = Quart(__name__, template_folder='templates')
 app.secret_key = env.get('APP_SECRET_KEY')
 
+# Register Auth0
 oauth = OAuth(app)
 oauth.register(
     "auth0",
@@ -33,8 +34,8 @@ def login():
     )
 
 @app.route("/callback", methods=['GET', 'POST'])
-def callback():
-    token = oauth.auth0.authorize_access_token() #type: ignore
+async def callback():
+    token = await oauth.auth0.authorize_access_token() #type: ignore
     session['user'] = token
     return redirect("/")
 
